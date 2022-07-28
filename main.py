@@ -23,6 +23,11 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
     for idx, colorNum in enumerate(color_num_list):
         color_list = color_list + [color_palette[idx]] * colorNum
 
+    # add default value col if not defined
+    if value_cols == '':
+        df['value_col'] = 1
+        value_cols = 'value_col'
+
     # transform df into a source-target pair
     for i in range(len(cat_cols) - 1):
         if i == 0:
@@ -84,11 +89,9 @@ if __name__ == '__main__':
         index=df.index,
         columns=df.columns,
     )
-    # add count column for weight
-    df['count'] = 1
     # print(df.to_string())
 
     # plot it
     fig = gen_sankey(df, cat_cols=['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5'],
-                     value_cols='count', title='Job Hunting Update - ' + date.today().strftime("%d/%m/%Y"))
+                     title='Job Hunting Update - ' + date.today().strftime("%d/%m/%Y"))
     plotly.offline.plot(fig, validate=False)
