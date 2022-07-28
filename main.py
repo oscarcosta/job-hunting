@@ -74,13 +74,9 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
     return fig
 
 
-if __name__ == '__main__':
-    # read the data file
-    df = pd.read_csv('data/Job Hunting - Sheet1.csv', sep=',', header=0,
-                     usecols=['Date', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
-
+def plot_by_status(df):
     # filter out recruiters interviews
-    df.query("`Status` != 'Recruiter Interview'", inplace=True)
+    df.query("`Status` != 'Recruiter'", inplace=True)
 
     # move Status to the first NaN column
     idx = pd.isna(df.values).argsort(axis=1)
@@ -91,7 +87,24 @@ if __name__ == '__main__':
     )
     # print(df.to_string())
 
-    # plot it
     fig = gen_sankey(df, cat_cols=['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5'],
                      title='Job Hunting Update - ' + date.today().strftime("%d/%m/%Y"))
     plotly.offline.plot(fig, validate=False)
+
+
+def plot_by_ref_site(df):
+    fig = gen_sankey(df, cat_cols=['Step 1', 'Ref/Site', 'Status'],
+                     title='Job Hunting by Ref/Site - ' + date.today().strftime("%d/%m/%Y"))
+    plotly.offline.plot(fig, validate=False)
+
+
+if __name__ == '__main__':
+    # read the data file
+    df = pd.read_csv('data/Job Hunting - Sheet1.csv', sep=',', header=0,
+                     usecols=['Date', 'Ref/Site', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
+
+    # adjust status column
+    df.loc[df["Status"] == "?", "Status"] = 'No Response'
+
+    # plot_by_status(df)
+    plot_by_ref_site(df)
