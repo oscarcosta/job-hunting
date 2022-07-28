@@ -94,17 +94,27 @@ def plot_by_status(df):
 
 def plot_by_ref_site(df):
     fig = gen_sankey(df, cat_cols=['Step 1', 'Ref/Site', 'Status'],
-                     title='Job Hunting by Ref/Site - ' + date.today().strftime("%d/%m/%Y"))
+                     title='Job Hunting Status by Ref/Site - ' + date.today().strftime("%d/%m/%Y"))
+    plotly.offline.plot(fig, validate=False)
+
+
+def plot_by_position(df):
+    # filter out recruiters interviews
+    df.query("`Status` != 'Recruiter'", inplace=True)
+
+    fig = gen_sankey(df, cat_cols=['Step 1', 'Position', 'Status'],
+                     title='Job Hunting Status by Position - ' + date.today().strftime("%d/%m/%Y"))
     plotly.offline.plot(fig, validate=False)
 
 
 if __name__ == '__main__':
     # read the data file
     df = pd.read_csv('data/Job Hunting - Sheet1.csv', sep=',', header=0,
-                     usecols=['Date', 'Ref/Site', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
+                     usecols=['Date', 'Position', 'Ref/Site', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
 
     # adjust status column
     df.loc[df["Status"] == "?", "Status"] = 'No Response'
 
     # plot_by_status(df)
-    plot_by_ref_site(df)
+    # plot_by_ref_site(df)
+    plot_by_position(df)
