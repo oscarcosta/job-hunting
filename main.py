@@ -10,8 +10,8 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
     color_palette = ['#4B8BBE', '#306998', '#FFE873', '#FFD43B', '#646464']
     label_list = []
     color_num_list = []
-    for catCol in cat_cols:
-        label_list_temp = list(set(df[catCol].values))
+    for cat_col in cat_cols:
+        label_list_temp = list(set(df[cat_col].values))
         color_num_list.append(len(label_list_temp))
         label_list = label_list + label_list_temp
 
@@ -20,8 +20,8 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
 
     # define colors based on number of levels
     color_list = []
-    for idx, colorNum in enumerate(color_num_list):
-        color_list = color_list + [color_palette[idx]] * colorNum
+    for idx, color_num in enumerate(color_num_list):
+        color_list = color_list + [color_palette[idx]] * color_num
 
     # add default value col if not defined
     if value_cols == '':
