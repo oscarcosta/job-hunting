@@ -11,7 +11,7 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
     label_list = []
     color_num_list = []
     for cat_col in cat_cols:
-        label_list_temp = list(set(df[cat_col].values))
+        label_list_temp = df[cat_col].unique().tolist()
         color_num_list.append(len(label_list_temp))
         label_list = label_list + label_list_temp
 
@@ -42,6 +42,15 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
     # add index for source-target pair
     source_target_df['sourceID'] = source_target_df['source'].apply(lambda x: label_list.index(x))
     source_target_df['targetID'] = source_target_df['target'].apply(lambda x: label_list.index(x))
+
+    # add count to labels
+    labels_tuple = np.unique(df[cat_cols].fillna(''), return_counts=True)
+    for i in range(len(labels_tuple[0])):
+        try:
+            index = label_list.index(labels_tuple[0][i])
+            label_list[index] = labels_tuple[0][i] + ": " + str(labels_tuple[1][i])
+        except ValueError:
+            pass
 
     # creating the sankey diagram
     data = dict(
