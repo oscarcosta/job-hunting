@@ -39,48 +39,7 @@ def gen_sankey(df, cat_cols=[], value_cols='', title='Sankey Diagram'):
             source_target_df = pd.concat([source_target_df, temp_df])
         source_target_df = source_target_df.groupby(['source', 'target']).agg({'count': 'sum'}).reset_index()
 
-    # add index for source-target pair
-    source_target_df['sourceID'] = source_target_df['source'].apply(lambda x: label_list.index(x))
-    source_target_df['targetID'] = source_target_df['target'].apply(lambda x: label_list.index(x))
-
-    # add count to labels
-    labels_tuple = np.unique(df[cat_cols].fillna(''), return_counts=True)
-    for i in range(len(labels_tuple[0])):
-        try:
-            index = label_list.index(labels_tuple[0][i])
-            label_list[index] = labels_tuple[0][i] + ": " + str(labels_tuple[1][i])
-        except ValueError:
-            pass
-
-    # creating the sankey diagram
-    data = dict(
-        type='sankey',
-        node=dict(
-            pad=15,
-            thickness=20,
-            line=dict(
-                color="black",
-                width=0.5
-            ),
-            label=label_list,
-            color=color_list
-        ),
-        link=dict(
-            source=source_target_df['sourceID'],
-            target=source_target_df['targetID'],
-            value=source_target_df['count']
-        )
-    )
-
-    layout = dict(
-        title=title,
-        font=dict(
-            size=10
-        )
-    )
-
-    fig = dict(data=[data], layout=layout)
-    return fig
+from sankey import gen_sankey
 
 
 def plot_by_status(df):
