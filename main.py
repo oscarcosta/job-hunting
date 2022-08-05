@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import plotly
 from datetime import datetime, timedelta
-
+from currency_converter import CurrencyConverter
 from sankey import gen_sankey
 
 
@@ -34,11 +34,46 @@ def plot_status_by_items(df, items, remove_recruiters=True):
     plotly.offline.plot(fig, validate=False)
 
 
+def plot_salaries(df):
+    # expand the salary range column
+    pattern = '((?P<salary_min>\d+)-)?(?P<salary_max>\d+)(?P<thousands>k?)\s(?P<currency>\w+)/(?P<period>H|M|Y)'
+    df_salary = df['Salary Range'].str.extract(pattern, expand=True)
+    df_salary[['thousands', 'currency', 'period']] = df_salary[['thousands', 'currency', 'period']].fillna('')
+    # print(df_salary.to_string())
+
+    pd.set_option("display.precision", 2)
+
+    # normalize salary to a base currency and per year
+    base_currency = 'USD'
+    currencies = list(filter(lambda x: x != base_currency and x != '', df_salary['currency'].unique().tolist()))
+    converter = CurrencyConverter(base_currency, currencies)
+    df.insert(4, 'salary_min', df_salary.apply(lambda x: convert_salary(converter, x, 'salary_min'), axis=1))
+    df.insert(5, 'salary_max', df_salary.apply(lambda x: convert_salary(converter, x, 'salary_max'), axis=1))
+    # print(df.to_string())
+
+    pd.options.plotting.backend = "plotly"
+    fig = df.plot.bar(title='Salaries p/ Company', x='Company', y='salary_max')
+    fig.show()
+
+
+def convert_salary(converter, df, column):
+    salary = float(df[column])
+    if salary != salary:
+        return salary
+    salary = salary if df['thousands'] == '' else salary * 1000
+    if df['period'] == 'M':
+        salary *= 12
+    elif df['period'] == 'H':
+        salary *= 2080
+    return converter.convert_to_base(salary, df['currency'])
+
+
+# TODO structure project https://docs.python-guide.org/writing/structure/
 if __name__ == '__main__':
     # read the data file
     df = pd.read_csv('data/Job Hunting - Sheet1.csv', sep=',', header=0,
-                     usecols=['Date', 'Position', 'Technology', 'Ref/Site', 'Last Interation',
-                              'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
+                     usecols=['Date', 'Company', 'Position', 'Technology', 'Salary Range', 'Ref/Site',
+                              'Last Interation', 'Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5', 'Status'])
 
     # adjust status and dates columns
     two_weeks = datetime.today() - timedelta(weeks=2)
@@ -46,9 +81,10 @@ if __name__ == '__main__':
     df['Last Interation'] = pd.to_datetime(df['Last Interation'], dayfirst=True)
     df.loc[(df['Status'] == "?") & (df['Last Interation'] <= two_weeks), 'Status'] = 'No Response'
     df.loc[(df['Status'] == "?") & (df['Last Interation'] > two_weeks), 'Status'] = 'Waiting'
-
     # print(df.to_string())
 
-    plot_by_status(df)
+    # plot_by_status(df)
     # plot_status_by_items(df, ['Ref/Site'], remove_recruiters=False)
     # plot_status_by_items(df, ['Position', 'Technology'])
+
+    plot_salaries(df)
