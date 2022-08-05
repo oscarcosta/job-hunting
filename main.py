@@ -34,7 +34,11 @@ def plot_status_by_items(df, items, remove_recruiters=True):
     plotly.offline.plot(fig, validate=False)
 
 
-def plot_salaries(df):
+def plot_salaries(df, filter_statuses=[]):
+    # filter out recruiters and specified statuses
+    filter_statuses.append('Recruiter')
+    df = df[~df['Status'].isin(filter_statuses)]
+
     # expand the salary range column
     pattern = '((?P<salary_min>\d+)-)?(?P<salary_max>\d+)(?P<thousands>k?)\s(?P<currency>\w+)/(?P<period>H|M|Y)'
     df_salary = df['Salary Range'].str.extract(pattern, expand=True)
@@ -85,6 +89,7 @@ if __name__ == '__main__':
 
     # plot_by_status(df)
     # plot_status_by_items(df, ['Ref/Site'], remove_recruiters=False)
+    # plot_status_by_items(df, ['Ref/Site', 'Company'])
     # plot_status_by_items(df, ['Position', 'Technology'])
 
-    plot_salaries(df)
+    plot_salaries(df, filter_statuses=['Reproved', 'No Response'])
